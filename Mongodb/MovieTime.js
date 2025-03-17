@@ -12,5 +12,5 @@ const Movietime = new mongoose.Schema({
        type:String
     }
 })
-const movietime = mongoose.Schema("Movietime",Movietime);
+const movietime = mongoose.model("Movietime",Movietime);
 module.exports = movietime

@@ -16,7 +16,6 @@ const createToken = (id) => {
 };
 const fs = require("fs");
 /**
- * Handles user registration
  * @param {string} Name 
  * @param {string} Email 
  * @param {string} Password 
@@ -31,10 +30,9 @@ const fs = require("fs");
 
 
 
-//function used for Registration of user 
 const RegisterUser = async (Name, Email, Password,PhoneNumber) => {
     try {
-        // Check if the user already exists
+
         const existingUser = await User_schema.findOne({ Email });
         if (existingUser) {
             return {
@@ -42,11 +40,11 @@ const RegisterUser = async (Name, Email, Password,PhoneNumber) => {
                 data: { message: "User is already signed up. Redirect to login page." }
             };
         }
-        // Save new user
+
         const PAssword = await bcrypt.hash(Password,10);
-        const newUser = new User_schema({ Name, Email, PAssword, PhoneNumber });
+        const newUser = new User_schema({ Name, Email,Password: PAssword, PhoneNumber });
         const savedUser = await newUser.save();
-        // Save payment information
+
         return {
             status: 200,
             data: { UserID: savedUser._id }
@@ -57,21 +55,21 @@ const RegisterUser = async (Name, Email, Password,PhoneNumber) => {
 };
 
 
-//Function Used to make Payment
+
 const PayMent = async (userId, Cardholder_Name, Card_number, Expiry_date, CVV) => {
     try {
-        // Save payment information
+
         const paymentInfo = new PayMent_schema({
             Cardholder_Name,
             Card_number,
             Expiry_date,
             CVV,
-            UserId: userId, // Link payment to the user
+            UserId: userId,
         });
 
         const savedPayment = await paymentInfo.save();
 
-        // Update user with the payment ID
+
         await User_schema.findByIdAndUpdate(userId, { Payment: savedPayment._id });
 
         return {
@@ -165,6 +163,7 @@ const add_to_series = async(filename,filePath,size,Discription,series_name) => {
 
 const Login = async (Email, Password) => {
     try {
+        console.log("call login")
         const User = await User_schema.findOne({ Email });
         
         if (!User) {
@@ -175,8 +174,6 @@ const Login = async (Email, Password) => {
                 },
             };
         }
-
-        // Compare the provided password with the stored hashed password
         const isPasswordValid = await bcrypt.compare(Password, User.Password);
         if (!isPasswordValid) {
             return {
@@ -187,7 +184,6 @@ const Login = async (Email, Password) => {
             };
         }
 
-        // Generate JWT token
         const token = createToken(User._id);
 
         return {
@@ -195,7 +191,7 @@ const Login = async (Email, Password) => {
             data: {
                 message: "You have logged in successfully.",
                 User_id: User._id,
-                token, // Token is returned for setting in the controller
+                token, 
             },
         };
     } catch (error) {
@@ -212,15 +208,12 @@ const Login = async (Email, Password) => {
 
 const Add_subUser = async (User_id, Name) => {
     try {
-        // Create a new sub-user
         const subUser = new subUser_schema({ Name, ParentId: User_id });
         const savedSubUser = await subUser.save();
-
-        // Update the user's SubUser_Id array to include the new sub-user's ID
         await User_schema.findByIdAndUpdate(
             User_id,
-            { $push: { SubUser_Id: savedSubUser._id } }, // Use $push to add the sub-user ID to the array
-            { new: true, useFindAndModify: false } // Return the updated document
+            { $push: { SubUser_Id: savedSubUser._id } }, 
+            { new: true, useFindAndModify: false } 
         );
         return {
             status: 200,
@@ -240,11 +233,10 @@ const Add_subUser = async (User_id, Name) => {
 
 
 
-// const Buy_subscription = await ()
 
 
 const generateFeatureVector = (item) => {
-    // Combine metadata for feature generation
+
     const combinedText = `
         ${item.Name || ""} 
         ${item.Discription || ""} 
@@ -253,14 +245,14 @@ const generateFeatureVector = (item) => {
         ${item.Lead_Actor.join(" ") || ""} 
         ${item.Category || ""}
     `;
-    const tokens = combinedText.toLowerCase().split(/\W+/); // Split by non-word characters
+    const tokens = combinedText.toLowerCase().split(/\W+/); 
     const uniqueTokens = Array.from(new Set(tokens));
     const tokenMap = {};
     uniqueTokens.forEach((token, index) => {
         tokenMap[token] = index;
     });
 
-    // Create a binary vector indicating the presence of tokens
+
     const vector = new Array(uniqueTokens.length).fill(0);
     tokens.forEach((token) => {
         if (tokenMap[token] !== undefined) {
@@ -294,7 +286,6 @@ const recommendVideos = async (watchedItems, allItems) => {
         };
     });
 
-    // Sort by similarity and return top 5 recommendations
     return recommendations
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, 5)
@@ -344,20 +335,14 @@ const Resume_playBack = async (SubUser_id, Video_id, timestamp) => {
 const Recommend = async(SubUser_id)=>{
     try{
 
-        // Fetch sub-user's watch history
         const subUser = await subUser_schema.findById(SubUser_id).populate("Saved");
         const watchedSeries = await seriestime_schema.find({ SubUser_id: SubUser_id }).populate("video_id");
         const watchedMovies = await movietime_schema.find({ SubUser_id: SubUser_id }).populate("video_id");
-
-        // Combine all watched items
         const watchedItems = [...watchedSeries.map((s) => s.video_id), ...watchedMovies.map((m) => m.video_id)];
 
-        // Fetch all available videos/series
         const allVideos = await Video_schema.find();
         const allSeries = await Series_schema.find();
         const allItems = [...allVideos, ...allSeries];
-
-        // Get recommendations
         const recommendations = await recommendVideos(watchedItems, allItems);
 
         return {

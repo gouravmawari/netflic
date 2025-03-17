@@ -7,7 +7,7 @@ const videoSchema = new mongoose.Schema({
     size: { type: Number, required: true },
     uploadedAt: { type: Date, default: Date.now },
     Discription:{type:String},
-    Director:{type:Stirng},
+    Director:{type:String},
     Writer:{type:String},
     IMDB:{type:Number},
     Lead_Actor:[{type:String}],

@@ -3,12 +3,12 @@ const { registerController, upload_movie, epi_series , stream,login,addSubUser }
 const Routes = express.Router();
 const {Authentication} = require("../middleware/JWT");
 const RateLimit = require("../middleware/rate-limit");
-const { upload } = require("../middleware/Multer"); // Destructure 'upload' from the middleware module
+const { upload } = require("../middleware/Multer"); 
 
-// Define routes
+
 Routes.post("/register", registerController);
 Routes.post("/uploads", upload.single("video"), upload_movie);
-Routes.get("/stream/:filename", stream);
+Routes.get("/stream/:filename/:subUserId",Authentication,stream);
 Routes.post("/addSubUser",addSubUser);
-Routes.get("/login",Authentication,RateLimit,login);
+Routes.post("/login",RateLimit,login);
 module.exports = Routes;

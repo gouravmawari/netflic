@@ -1,21 +1,21 @@
 const mongoose = require("mongoose");
 
 const user_schema = new mongoose.Schema({
-    Name: { type: String }, // Correct type for Name
-    Email: { type: String }, // Fixed type to String for an email address
-    Password: { type: String }, // Correct type for Password
+    Name: { type: String }, 
+    Email: { type: String },
+    Password: { type: String },
     Payment: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'PayMent_Schema', // Correctly referencing another schema
-        // required: true, // Fixed spelling from 'require' to 'required'
+        ref: 'PayMent_Schema',
+       
     },
-    PhoneNumber: { type: Number, required: true }, // Corrected `Type` to `type` and `require` to `required`
+    PhoneNumber: { type: Number, required: true },
     Valid:{type:Boolean},
     SubUser_Id:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:"SubUser_schema"
     }],
-    startDate:{type:Data},
+    startDate:{type:Date},
     endDate:{type:Date}
     
 });

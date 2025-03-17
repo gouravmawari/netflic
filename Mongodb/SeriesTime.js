@@ -12,5 +12,5 @@ const Seriestime = new mongoose.Schema({
        type:String
     }
 })
-const seriestime = mongoose.Schema("Seriestime",Seriestime);
+const seriestime = mongoose.model("Seriestime",Seriestime);
 module.exports = seriestime
